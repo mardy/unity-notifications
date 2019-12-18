@@ -130,10 +130,7 @@ void NotificationModel::insertNotification(const QSharedPointer<Notification> &n
         printf("Unknown notification type, I should probably throw an exception here.\n");
         break;
     }
-    int timeout = nextTimeout();
-    //Q_ASSERT(timeout > 0);
-    p->timer.setInterval(timeout);
-    p->timer.start();
+    setupNextTimeout();
 }
 
 QList<QSharedPointer<Notification>> NotificationModel::getAllNotifications() const {
@@ -348,10 +345,7 @@ void NotificationModel::timeout() {
         restartTimer |= nonSnapTimeout();
     }
     if(restartTimer) {
-        int timeout = nextTimeout();
-        Q_ASSERT(timeout > 0);
-        p->timer.setInterval(timeout);
-        p->timer.start();
+        setupNextTimeout();
     }
 }
 
@@ -385,11 +379,6 @@ void NotificationModel::pruneExpired() {
 
 int NotificationModel::nextTimeout() const {
     int mintime = INT_MAX;
-    if(p->displayedNotifications.empty()) {
-        // What to do? It really does not make sense
-        // to add a timer in this case.
-        return 10000;
-    }
     for(int i=0; i<p->displayedNotifications.size(); i++) {
         QSharedPointer<Notification> n = p->displayedNotifications[i];
         int totalTime = n->getDisplayTime();
@@ -403,6 +392,14 @@ int NotificationModel::nextTimeout() const {
         }
     }
     return mintime;
+}
+
+void NotificationModel::setupNextTimeout() {
+    int timeout = nextTimeout();
+    if (timeout != INT_MAX) {
+        p->timer.setInterval(timeout);
+        p->timer.start();
+    }
 }
 
 void NotificationModel::insertEphemeral(const QSharedPointer<Notification> &n) {
@@ -602,10 +599,7 @@ void NotificationModel::notificationUpdated(const NotificationID id) {
         incrementDisplayTimes(p->timer.interval() - p->timer.remainingTime());
         p->timer.stop();
         p->displayTimes[id] = 0;
-        int timeout = nextTimeout();
-        Q_ASSERT(timeout > 0);
-        p->timer.setInterval(timeout);
-        p->timer.start();
+        setupNextTimeout();
     }
 }
 

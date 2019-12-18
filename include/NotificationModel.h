@@ -77,6 +77,7 @@ private:
 
     bool nonSnapTimeout();
     int nextTimeout() const;
+    void setupNextTimeout();
     void incrementDisplayTimes(const int displayedTime) const;
     void pruneExpired();
 
